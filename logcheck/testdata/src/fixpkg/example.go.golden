@@ -1,0 +1,7 @@
+package fixpkg
+
+import "log/slog"
+
+func f() {
+	slog.Info("hello") // want "start with a lowercase letter" 
+}

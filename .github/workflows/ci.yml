@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run tests
+        run: go test ./... -v
+
+  lint:
+    name: Lint (custom golangci-lint + module plugin)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build custom golangci-lint (manual build, no golangci-lint custom)
+        run: |
+          set -euo pipefail
+
+          GCL_VERSION="v1.64.8"
+
+          rm -rf /tmp/golangci-lint
+          git clone --branch "${GCL_VERSION}" --single-branch --depth 1 https://github.com/golangci/golangci-lint.git /tmp/golangci-lint
+
+          # Add plugin import into cmd/golangci-lint/plugins.go
+          cat > /tmp/golangci-lint/cmd/golangci-lint/plugins.go <<'EOF'
+          package main
+
+          import (
+              _ "github.com/vladik2801/loglint/pluginmodule"
+          )
+          EOF
+
+          cd /tmp/golangci-lint
+
+          # Use current repo as the plugin module source
+          go mod edit -replace github.com/vladik2801/loglint="${GITHUB_WORKSPACE}"
+          go mod tidy
+
+          # Build custom binary into workspace
+          go build -o "${GITHUB_WORKSPACE}/custom-gcl" ./cmd/golangci-lint
+
+      - name: Run lint
+        run: |
+          ./custom-gcl run --timeout=5m ./...

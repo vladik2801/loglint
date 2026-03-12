@@ -1,0 +1,6 @@
+output:
+  path: ./bin/golangci-lint-custom
+
+plugins:
+  - module: github.com/vladik2801/loglint
+    path: .

@@ -1,0 +1,4 @@
+{
+  "rules": { "noSpecial": true },
+  "banned_characters": [":"]
+}

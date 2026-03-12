@@ -1,0 +1,6 @@
+version: v1.64.8
+
+plugins:
+  - module: github.com/vladik2801/loglint
+    import: github.com/vladik2801/loglint/pluginmodule
+    path: /mnt/c/Users/vladi/Desktop/selectel
